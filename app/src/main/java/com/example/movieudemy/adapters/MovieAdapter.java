@@ -45,7 +45,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
                 .placeholder(R.drawable.ic_place_holder)
                 .into(holder.imageView);
 //        Log.i("den", list.get(position).getImagePath());
-
+        if((list.size() - 1) == position){
+            movieAdepterOnClickListener.onReachDataSet(true);
+        }
     }
 
     @Override
@@ -80,14 +82,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
         return list;
     }
 
-    public void setList(List<Movie> list, boolean isAddPage) {
-        int i = MovieAdapter. list.size();
+    public void setList(List<Movie> list) {
         MovieAdapter.list.clear();
         MovieAdapter.list.addAll(list);
-        if(isAddPage){
-            notifyItemRangeChanged(i, list.size());
-            return;
-        }
         notifyDataSetChanged();
     }
 }

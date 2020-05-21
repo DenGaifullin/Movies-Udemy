@@ -27,8 +27,12 @@ import static com.example.movieudemy.network.JsonUtils.SORTED_BY_POPULARITY_DESC
 import static com.example.movieudemy.network.JsonUtils.SORTED_BY_VOTE_AVERAGE_DESC;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>> {
-    private boolean isMostPopular = true;
-    private int page =1;
+    public static boolean isMostPopular = true;
+    public static boolean isAddNextPage = false;
+
+    public static int page =1;
+    private boolean isFinished;
+
     Switch aSwitch;
     List<Movie> list = new ArrayList<>();
     MovieAdapter adapter;
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     TextView textViewMostPopular;
     TextView textViewTopRated;
-    private static final int ID = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,15 +50,21 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         textViewMostPopular.setTextColor(Color.YELLOW);
         textViewTopRated =   findViewById(R.id.textViewTopRated);
         aSwitch = findViewById(R.id.switch1);
+        Bundle bundle = new Bundle();
+        bundle.putInt("page", page);
+        loader = getSupportLoaderManager().initLoader(1, bundle, this);
         aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 isMostPopular = !isMostPopular;
-                downloadData(false);
+                loader.onContentChanged();
+
                 if(isChecked){  textViewMostPopular.setTextColor(Color.WHITE);
                                 textViewTopRated.setTextColor(Color.YELLOW);
+                                page = 1;
                 } else {    textViewMostPopular.setTextColor(Color.YELLOW);
-                            textViewTopRated.setTextColor(getResources().getColor(R.color.white));  }
+                            textViewTopRated.setTextColor(getResources().getColor(R.color.white));
+                            page= 1; }
             }
         });
 
@@ -71,8 +81,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
             @Override
             public void onReachDataSet(boolean isAddPage) {
-                downloadData(isAddPage);
-
+                if(isFinished){
+                    isAddNextPage = true;
+                    isFinished = false;
+                    page++;
+                    loader.onContentChanged();
+                }
             }
         });
         recyclerView.setAdapter(adapter);
@@ -86,27 +100,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
             }
         });
-        Bundle bundle = new Bundle();
-        bundle.putInt("page", page);
-
-        loader = getSupportLoaderManager().initLoader(ID, bundle, this);
-        downloadData(false);
-    }
-
-    private void downloadData(boolean isAddPage){
-
-        if(isMostPopular){
-            if(isAddPage)
-                page++;
-            List<Movie> list1 = new ArrayList<>();
-            list1.addAll(MovieAdapter.getList());
-
-            list1.addAll( JsonUtils.getArrayListFromJsonObj(JsonUtils.getJsonObjectSortedByPopularity(SORTED_BY_POPULARITY_DESC, page)));
-           adapter.setList(list1, isAddPage);
-        } else {
-
-            adapter.setList(JsonUtils.getArrayListFromJsonObj(JsonUtils.getJsonObjectSortedByPopularity(SORTED_BY_VOTE_AVERAGE_DESC, page)), isAddPage);
-        }
     }
 
     public void onClick(View view) {
@@ -117,6 +110,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             aSwitch.setChecked(true);
     }
 
+
+    // *****   Loader
     @NonNull
     @Override
     public Loader<List<Movie>> onCreateLoader(int id, @Nullable Bundle args) {
@@ -126,15 +121,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
+        if(isAddNextPage){
+            List<Movie> list = new ArrayList<>();
+            list.addAll(adapter.getList());
+            list.addAll(data);
+            adapter.setList(list);
+            isAddNextPage = false;
+        } else adapter.setList(data);
 
+        isFinished = true;
     }
 
     @Override
     public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
 
     }
-
-
-    // Loader
-
 }
