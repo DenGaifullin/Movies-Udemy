@@ -3,6 +3,7 @@ package com.example.movieudemy;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.CompoundButton;
@@ -19,11 +21,13 @@ import android.widget.TextView;
 import com.example.movieudemy.adapters.MovieAdapter;
 import com.example.movieudemy.database.MoviesDatabase;
 import com.example.movieudemy.database.MyApplication;
+import com.example.movieudemy.database.MyViewModel;
 import com.example.movieudemy.network.JsonUtils;
 import com.example.movieudemy.network.MainLoader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     MovieAdapter adapter;
     Loader<List<Movie>> loader;
+    MyViewModel myViewModel;
 
 
     @Override
@@ -67,9 +72,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-
         // Данные из БД
-        List<Movie> list = MyApplication.getInstance().getDatabase().movieDao().getAll();
+        List<Movie> list = workWithDB("getAll", null);
+
+        // View Model
+        myViewModel = new ViewModelProvider(this).get(MyViewModel.class);
+
 
         // Ресайклер
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
@@ -116,8 +124,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
         if(data != null && data.size() > 10){
-            if(!isAddNextPage)
-                MyApplication.getInstance().getDatabase().movieDao().deleteAll();
+            if(!isAddNextPage) {
+                workWithDB("deleteAll", null);
+            }
 
             if(isAddNextPage){
                 List<Movie> list = new ArrayList<>();
@@ -128,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             } else {
                 adapter.setList(data);
             }
-            MyApplication.getInstance().getDatabase().movieDao().addAll(data);
+            workWithDB("addAll", data);
             isFinished = true;
         }
     }
@@ -136,5 +145,41 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
 
+    }
+
+    private List<Movie> workWithDB(String key, List<Movie> movies){
+        try {
+            if(key.equals("addAll"))
+                new GetDataFromDB().execute("addAll", movies).get();
+
+            if(key.equals("deleteAll"))
+                new GetDataFromDB().execute("deleteAll").get();
+
+            if(key.equals("getAll"))
+                return new GetDataFromDB().execute("getAll").get();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Достаем инфу из Базы Данных
+    private static class GetDataFromDB extends AsyncTask<Object, Void, List<Movie>> {
+        @Override
+        protected List<Movie> doInBackground(Object... strings) {
+            String key = (String) strings[0];
+            List<Movie> movies = null;
+            if(strings.length ==2 && strings[1] != null)
+                movies = (List<Movie>) strings[1];
+
+            switch (key){
+                case "getAll" : return MyApplication.getInstance().getDatabase().movieDao().getAll();
+                case "deleteAll" : MyApplication.getInstance().getDatabase().movieDao().deleteAll() ;   break;
+                case "addAll" : MyApplication.getInstance().getDatabase().movieDao().addAll(movies);    break;
+            }
+            return null;
+        }
     }
 }

@@ -13,9 +13,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
-        database = Room.databaseBuilder(this, MoviesDatabase.class, "database")
-                .allowMainThreadQueries()
-                .build();
+        database = Room.databaseBuilder(this, MoviesDatabase.class, "database").build();
     }
 
     public static MyApplication getInstance() {
