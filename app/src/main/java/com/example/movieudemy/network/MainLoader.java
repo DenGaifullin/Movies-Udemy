@@ -17,12 +17,9 @@ import static com.example.movieudemy.network.JsonUtils.SORTED_BY_POPULARITY_DESC
 import static com.example.movieudemy.network.JsonUtils.SORTED_BY_VOTE_AVERAGE_DESC;
 
 public class MainLoader extends AsyncTaskLoader<List<Movie>> {
-    Bundle bundle;
 
-    public MainLoader(@NonNull Context context, Bundle bundle) {
+    public MainLoader(@NonNull Context context) {
         super(context);
-        this.bundle = bundle;
-//        this.isMostPopular = bundle.getBoolean("isMostPopular");
     }
 
     @Override

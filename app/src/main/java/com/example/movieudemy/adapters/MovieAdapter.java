@@ -1,6 +1,5 @@
 package com.example.movieudemy.adapters;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import com.example.movieudemy.Movie;
 import com.example.movieudemy.R;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder> {
@@ -22,7 +20,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
 
     public interface MovieAdepterOnClickListener{
         void onClick(int position);
-        void onReachDataSet(boolean isAdd);
+        void onReachEndDataSet();
     }
     public void setMovieAdepterOnClickListener(MovieAdepterOnClickListener movieAdepterOnClickListener) {
          MovieAdapter .movieAdepterOnClickListener = movieAdepterOnClickListener;
@@ -46,7 +44,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
                 .into(holder.imageView);
 //        Log.i("den", list.get(position).getImagePath());
         if((list.size() - 1) == position){
-            movieAdepterOnClickListener.onReachDataSet(true);
+            movieAdepterOnClickListener.onReachEndDataSet();
         }
     }
 
@@ -75,16 +73,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
     }
 
     public MovieAdapter(List<Movie> list) {
-        this.list = list;
+        MovieAdapter.list = list;
     }
 
     public static List getList() {
         return list;
     }
 
-    public void setList(List<Movie> list) {
+    public void setList(List<Movie> list1) {
         MovieAdapter.list.clear();
-        MovieAdapter.list.addAll(list);
+        MovieAdapter.list.addAll(list1);
         notifyDataSetChanged();
     }
 }

@@ -1,6 +1,12 @@
 package com.example.movieudemy;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "Movies")
 public class Movie {
+
+    @PrimaryKey(autoGenerate = true)
     private int localId;
     private int id;
 

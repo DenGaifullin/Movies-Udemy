@@ -17,11 +17,16 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.movieudemy.adapters.MovieAdapter;
+import com.example.movieudemy.database.MoviesDatabase;
+import com.example.movieudemy.database.MyApplication;
 import com.example.movieudemy.network.JsonUtils;
 import com.example.movieudemy.network.MainLoader;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static com.example.movieudemy.network.JsonUtils.SORTED_BY_POPULARITY_DESC;
 import static com.example.movieudemy.network.JsonUtils.SORTED_BY_VOTE_AVERAGE_DESC;
@@ -33,32 +38,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public static int page =1;
     private boolean isFinished;
 
-    Switch aSwitch;
-    List<Movie> list = new ArrayList<>();
-    MovieAdapter adapter;
+    @BindView (R.id.switch1) Switch aSwitch;
+    @BindView (R.id.textViewMostPopular) TextView textViewMostPopular;
+    @BindView (R.id.textViewTopRated) TextView textViewTopRated;
 
+    MovieAdapter adapter;
     Loader<List<Movie>> loader;
 
-    TextView textViewMostPopular;
-    TextView textViewTopRated;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        textViewMostPopular =   findViewById(R.id.textViewMostPopular);
+        ButterKnife.bind(this);
+
         textViewMostPopular.setTextColor(Color.YELLOW);
-        textViewTopRated =   findViewById(R.id.textViewTopRated);
-        aSwitch = findViewById(R.id.switch1);
-        Bundle bundle = new Bundle();
-        bundle.putInt("page", page);
-        loader = getSupportLoaderManager().initLoader(1, bundle, this);
         aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 isMostPopular = !isMostPopular;
                 loader.onContentChanged();
-
                 if(isChecked){  textViewMostPopular.setTextColor(Color.WHITE);
                                 textViewTopRated.setTextColor(Color.YELLOW);
                                 page = 1;
@@ -68,9 +67,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
+
+        // Данные из БД
+        List<Movie> list = MyApplication.getInstance().getDatabase().movieDao().getAll();
+
+        // Ресайклер
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        final GridLayoutManager gridLayoutManager = new GridLayoutManager(this, 2);
-        recyclerView.setLayoutManager(gridLayoutManager);
+        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
         adapter = new MovieAdapter(list);
         adapter.setMovieAdepterOnClickListener(new MovieAdapter.MovieAdepterOnClickListener() {
             @Override
@@ -80,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 startActivity(intent);
             }
             @Override
-            public void onReachDataSet(boolean isAddPage) {
+            public void onReachEndDataSet() {
                 if(isFinished){
                     isAddNextPage = true;
                     isFinished = false;
@@ -90,16 +93,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
         recyclerView.setAdapter(adapter);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                int position = gridLayoutManager.findLastVisibleItemPosition();
-                if(position == adapter.getItemCount() - 1){
-//                    if()
-                }
-            }
-        });
+        // Данные из сети
+        loader = getSupportLoaderManager().initLoader(1, new Bundle(), this);
     }
 
     public void onClick(View view) {
@@ -110,26 +105,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             aSwitch.setChecked(true);
     }
 
-
     // *****   Loader
     @NonNull
     @Override
     public Loader<List<Movie>> onCreateLoader(int id, @Nullable Bundle args) {
-        Loader<List<Movie>> loader = new MainLoader(this, args);
+        Loader<List<Movie>> loader = new MainLoader(this);
         return loader;
     }
 
     @Override
     public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
-        if(isAddNextPage){
-            List<Movie> list = new ArrayList<>();
-            list.addAll(adapter.getList());
-            list.addAll(data);
-            adapter.setList(list);
-            isAddNextPage = false;
-        } else adapter.setList(data);
+        if(data != null && data.size() > 10){
+            if(!isAddNextPage)
+                MyApplication.getInstance().getDatabase().movieDao().deleteAll();
 
-        isFinished = true;
+            if(isAddNextPage){
+                List<Movie> list = new ArrayList<>();
+                list.addAll(adapter.getList());
+                list.addAll(data);
+                adapter.setList(list);
+                isAddNextPage = false;
+            } else {
+                adapter.setList(data);
+            }
+            MyApplication.getInstance().getDatabase().movieDao().addAll(data);
+            isFinished = true;
+        }
     }
 
     @Override
