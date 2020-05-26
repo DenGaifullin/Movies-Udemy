@@ -1,4 +1,4 @@
-package com.example.movieudemy.database;
+package com.example.movieudemy.data;
 
 import android.app.Application;
 
@@ -13,6 +13,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
+        //  .fallbackToDestructiveMigration()
         database = Room.databaseBuilder(this, MoviesDatabase.class, "database").build();
     }
 

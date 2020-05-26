@@ -36,12 +36,66 @@
             app:srcCompat="@drawable/ic_delete_favorite_" />
 
         <include
+            android:id="@+id/include"
             layout="@layout/description_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/image_view_movie_poster_detail_activity" />
+
+
+        <TextView
+            android:id="@+id/text_view_trailers_title"
+            android:textColor="@android:color/holo_purple"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="4dp"
+            android:text="@string/trailer_title"
+            app:layout_constraintTop_toBottomOf="@+id/include"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewForTrailers"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            app:layout_constraintEnd_toEndOf="@+id/recyclerViewForComments"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_view_trailers_title" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@android:color/darker_gray"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recyclerViewForTrailers"
+            />
+
+        <TextView
+            android:id="@+id/text_view_review_title"
+            android:textColor="@android:color/holo_purple"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/review_title"
+            app:layout_constraintTop_toBottomOf="@+id/recyclerViewForTrailers"
+            app:layout_constraintStart_toStartOf="parent"
+            />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewForComments"
+            android:padding="4dp"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_view_review_title"
+            />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

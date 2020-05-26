@@ -11,29 +11,27 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
 
 import com.example.movieudemy.adapters.MovieAdapter;
-import com.example.movieudemy.database.MoviesDatabase;
-import com.example.movieudemy.database.MyApplication;
-import com.example.movieudemy.database.MyViewModel;
-import com.example.movieudemy.network.JsonUtils;
+import com.example.movieudemy.data.Movie;
+import com.example.movieudemy.data.MyViewModel;
 import com.example.movieudemy.network.MainLoader;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import static com.example.movieudemy.network.JsonUtils.SORTED_BY_POPULARITY_DESC;
-import static com.example.movieudemy.network.JsonUtils.SORTED_BY_VOTE_AVERAGE_DESC;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>> {
     public static boolean isMostPopular = true;
@@ -49,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     MovieAdapter adapter;
     Loader<List<Movie>> loader;
     MyViewModel myViewModel;
+    List<Movie> list;
 
 
     @Override
@@ -56,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-
+        page = 1;
         textViewMostPopular.setTextColor(Color.YELLOW);
         aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -72,22 +71,22 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-        // Данные из БД
-        List<Movie> list = workWithDB("getAll", null);
-
         // View Model
         myViewModel = new ViewModelProvider(this).get(MyViewModel.class);
 
+        // Данные из БД
+        list = myViewModel. workWithDB("getAll", null);
 
         // Ресайклер
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        recyclerView.setLayoutManager(new GridLayoutManager(this, getColumnCount()));
         adapter = new MovieAdapter(list);
         adapter.setMovieAdepterOnClickListener(new MovieAdapter.MovieAdepterOnClickListener() {
             @Override
             public void onClick(int position) {
                 Intent intent = new Intent(MainActivity.this, DetailActivity.class);
                 intent.putExtra ("ID", position);
+                intent.putExtra("isFavorite", false);
                 startActivity(intent);
             }
             @Override
@@ -101,8 +100,35 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
         recyclerView.setAdapter(adapter);
+
         // Данные из сети
-        loader = getSupportLoaderManager().initLoader(1, new Bundle(), this);
+        loader =  getSupportLoaderManager().initLoader(1, new Bundle(), this);
+    }
+
+    private int getColumnCount() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int width = (int) (displayMetrics.widthPixels / displayMetrics.density);
+        Log.i("Dend", "" +width);
+        return Math.max(width / 200, 2);
+    }
+
+    // Menu
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.favourites : startActivity(new Intent(this, FavouriteActivity.class)); break;
+            case R.id.spare :  break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+
+        return super.onCreateOptionsMenu(menu);
     }
 
     public void onClick(View view) {
@@ -125,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
         if(data != null && data.size() > 10){
             if(!isAddNextPage) {
-                workWithDB("deleteAll", null);
+                myViewModel.workWithDB("deleteAll", null);
             }
 
             if(isAddNextPage){
@@ -135,9 +161,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 adapter.setList(list);
                 isAddNextPage = false;
             } else {
-                adapter.setList(data);
+                if(!(page > 1))
+                    adapter.setList(data);
             }
-            workWithDB("addAll", data);
+            myViewModel.workWithDB("addAll", data);
             isFinished = true;
         }
     }
@@ -145,41 +172,5 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
 
-    }
-
-    private List<Movie> workWithDB(String key, List<Movie> movies){
-        try {
-            if(key.equals("addAll"))
-                new GetDataFromDB().execute("addAll", movies).get();
-
-            if(key.equals("deleteAll"))
-                new GetDataFromDB().execute("deleteAll").get();
-
-            if(key.equals("getAll"))
-                return new GetDataFromDB().execute("getAll").get();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    // Достаем инфу из Базы Данных
-    private static class GetDataFromDB extends AsyncTask<Object, Void, List<Movie>> {
-        @Override
-        protected List<Movie> doInBackground(Object... strings) {
-            String key = (String) strings[0];
-            List<Movie> movies = null;
-            if(strings.length ==2 && strings[1] != null)
-                movies = (List<Movie>) strings[1];
-
-            switch (key){
-                case "getAll" : return MyApplication.getInstance().getDatabase().movieDao().getAll();
-                case "deleteAll" : MyApplication.getInstance().getDatabase().movieDao().deleteAll() ;   break;
-                case "addAll" : MyApplication.getInstance().getDatabase().movieDao().addAll(movies);    break;
-            }
-            return null;
-        }
     }
 }

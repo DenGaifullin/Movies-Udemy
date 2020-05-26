@@ -8,7 +8,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.movieudemy.Movie;
+import com.example.movieudemy.data.Movie;
 import com.example.movieudemy.R;
 import com.squareup.picasso.Picasso;
 
@@ -53,12 +53,12 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
         return list.size();
     }
 
-    public static class MovieHolder extends RecyclerView.ViewHolder {
+    static class MovieHolder extends RecyclerView.ViewHolder {
         private int id;
         private String imagePath;
         ImageView imageView;
 
-        public MovieHolder(@NonNull View itemView) {
+        MovieHolder(@NonNull View itemView) {
             super(itemView);
             this.imageView = itemView.findViewById(R.id.image_view_movie_poster);
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -81,6 +81,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieHolder>
     }
 
     public void setList(List<Movie> list1) {
+
         MovieAdapter.list.clear();
         MovieAdapter.list.addAll(list1);
         notifyDataSetChanged();

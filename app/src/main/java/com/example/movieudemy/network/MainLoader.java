@@ -1,14 +1,13 @@
 package com.example.movieudemy.network;
 
 import android.content.Context;
-import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.loader.content.AsyncTaskLoader;
 
 import com.example.movieudemy.MainActivity;
-import com.example.movieudemy.Movie;
+import com.example.movieudemy.data.Movie;
 
 import java.util.List;
 

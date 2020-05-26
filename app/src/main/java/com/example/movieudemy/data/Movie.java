@@ -1,6 +1,7 @@
-package com.example.movieudemy;
+package com.example.movieudemy.data;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "Movies")
@@ -8,6 +9,7 @@ public class Movie {
 
     @PrimaryKey(autoGenerate = true)
     private int localId;
+
     private int id;
 
     private String imagePath;
@@ -17,6 +19,18 @@ public class Movie {
     private String releaseDate;
     private String overview;
 
+    public Movie(int localId, int id, String title, String originTitle, String overview, String imagePath, String releaseDate, String voteAverage) {
+        this.localId = localId;
+        this.id = id;
+        this.imagePath = imagePath;
+        this.title = title;
+        this.originTitle = originTitle;
+        this.voteAverage = voteAverage;
+        this.releaseDate = releaseDate;
+        this.overview = overview;
+    }
+
+    @Ignore
     public Movie(int id, String title, String originTitle, String overview, String imagePath, String releaseDate, String voteAverage) {
         this.id = id;
         this.title = title;
@@ -43,7 +57,7 @@ public class Movie {
         this.voteAverage = voteAverage;
     }
 
-    public int getLocalId() {
+    int getLocalId() {
         return localId;
     }
 

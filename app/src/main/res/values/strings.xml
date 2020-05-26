@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Movie Udemy</string>
+    <string name="app_name">Dinislam\nAPK</string>
     <string name="most_popular">Самое популярное</string>
     <string name="top_rated">Высший рейтинг</string>
     <string name="film_poster">Постер фильма</string>
@@ -8,4 +8,8 @@
     <string name="rating">Рейтинг:</string>
     <string name="original_title">Оригинальное название:</string>
     <string name="title">Название:</string>
+    <string name="trailer_title">Трейлеры</string>
+    <string name="favourites">Избранное</string>
+    <string name="string_plug">Список пуст, добавьте фильмы.</string>
+    <string name="review_title">Отзывы</string>
 </resources>
