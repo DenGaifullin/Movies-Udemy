@@ -11,6 +11,7 @@
     <item
         android:id="@+id/spare"
         android:orderInCategory="100"
-        android:title="кутак"
+        android:visible="false"
+        android:title="резерв"
         app:showAsAction="never"/>
 </menu>
